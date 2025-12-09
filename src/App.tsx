@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Mail, Loader2, AlertCircle, Database, Copy, Check } from 'lucide-react';
+import { Search, Mail, Loader2, AlertCircle, Database, Copy, Check, Trash2 } from 'lucide-react';
 import { SocialIcon } from './components/SocialIcon';
 import { ResultCard } from './components/ResultCard';
 import { supabase } from './lib/supabase';
@@ -55,13 +55,26 @@ function App() {
       const { data, error } = await supabase
         .from('scrape_results')
         .select('*')
-        .order('created_at', { ascending: false })
-        .limit(10);
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setHistory(data || []);
     } catch (err) {
       console.error('Failed to load history:', err);
+    }
+  };
+
+  const deleteResult = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('scrape_results')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await loadHistory();
+    } catch (err) {
+      console.error('Failed to delete result:', err);
     }
   };
 
@@ -363,20 +376,22 @@ function App() {
                       {history.map((item) => (
                         <div
                           key={item.id}
-                          onClick={() =>
-                            setSelectedResult({
-                              domain: item.domain,
-                              result: {
-                                source: item.source,
-                                emails: item.emails,
-                                socials: item.socials,
-                              },
-                            })
-                          }
-                          className="p-4 bg-slate-50 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors border border-transparent hover:border-blue-200"
+                          className="p-4 bg-slate-50 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200 group"
                         >
                           <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
+                            <div
+                              onClick={() =>
+                                setSelectedResult({
+                                  domain: item.domain,
+                                  result: {
+                                    source: item.source,
+                                    emails: item.emails,
+                                    socials: item.socials,
+                                  },
+                                })
+                              }
+                              className="flex-1 min-w-0 cursor-pointer"
+                            >
                               <p className="font-medium text-slate-900 break-all hover:text-blue-600">{item.domain}</p>
                               <p className="text-sm text-slate-600 mt-1">
                                 {item.emails.length} email{item.emails.length !== 1 ? 's' : ''} • {Object.values(item.socials).flat().length} social link{Object.values(item.socials).flat().length !== 1 ? 's' : ''}
@@ -385,6 +400,13 @@ function App() {
                                 {new Date(item.created_at).toLocaleDateString()} at {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </p>
                             </div>
+                            <button
+                              onClick={() => deleteResult(item.id)}
+                              className="text-slate-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg flex-shrink-0"
+                              title="Delete this result"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
                           </div>
                         </div>
                       ))}
