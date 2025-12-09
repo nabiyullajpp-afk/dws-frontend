@@ -35,6 +35,7 @@ function App() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedResult, setSelectedResult] = useState<DomainResult | null>(null);
+  const [searchFilter, setSearchFilter] = useState('');
 
   useEffect(() => {
     loadHistory();
@@ -371,9 +372,18 @@ function App() {
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 {history.length > 0 ? (
                   <>
-                    <h2 className="text-2xl font-bold text-slate-900 mb-6">Saved Results</h2>
+                    <div className="mb-6">
+                      <h2 className="text-2xl font-bold text-slate-900 mb-4">Saved Results</h2>
+                      <input
+                        type="text"
+                        placeholder="Search domain names..."
+                        value={searchFilter}
+                        onChange={(e) => setSearchFilter(e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
                     <div className="space-y-3">
-                      {history.map((item) => (
+                      {history.filter((item) => item.domain.toLowerCase().includes(searchFilter.toLowerCase())).map((item) => (
                         <div
                           key={item.id}
                           className="p-4 bg-slate-50 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200 group"
