@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Mail, Loader2, AlertCircle, Database, Copy, Check, Trash2 } from 'lucide-react';
+import { Search, Mail, Loader2, AlertCircle, Database, Copy, Check } from 'lucide-react';
 import { SocialIcon } from './components/SocialIcon';
 import { ResultCard } from './components/ResultCard';
 import { supabase } from './lib/supabase';
@@ -62,21 +62,6 @@ function App() {
       setHistory(data || []);
     } catch (err) {
       console.error('Failed to load history:', err);
-    }
-  };
-
-  const deleteResult = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('scrape_results')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      setHistory(prev => prev.filter(item => item.id !== id));
-      await loadHistory();
-    } catch (err) {
-      console.error('Failed to delete result:', err);
     }
   };
 
@@ -186,6 +171,7 @@ function App() {
             <Search className="w-5 h-5" />
             Search
           </button>
+
           <button
             onClick={() => setTab('saved')}
             className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors ${
@@ -200,52 +186,52 @@ function App() {
         </div>
 
         {tab === 'search' && (
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="domains" className="block text-sm font-medium text-slate-700 mb-2">
-                Website Domains
-              </label>
-              <textarea
-                id="domains"
-                value={domains}
-                onChange={(e) => setDomains(e.target.value)}
-                placeholder="example.com&#10;domain.io&#10;site.co"
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
-                rows={4}
+          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="domains" className="block text-sm font-medium text-slate-700 mb-2">
+                  Website Domains
+                </label>
+                <textarea
+                  id="domains"
+                  value={domains}
+                  onChange={(e) => setDomains(e.target.value)}
+                  placeholder="example.com&#10;domain.io&#10;site.co"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"
+                  rows={4}
+                  disabled={loading}
+                />
+                <p className="mt-2 text-sm text-slate-500">
+                  Enter domains separated by commas or new lines. Example: example.com, domain.io, site.co
+                </p>
+              </div>
+
+              <button
+                type="submit"
                 disabled={loading}
-              />
-              <p className="mt-2 text-sm text-slate-500">
-                Enter domains separated by commas or new lines. Example: example.com, domain.io, site.co
-              </p>
-            </div>
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Scanning...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-5 h-5" />
+                    Find Contacts
+                  </>
+                )}
+              </button>
+            </form>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Scanning...
-                </>
-              ) : (
-                <>
-                  <Search className="w-5 h-5" />
-                  Find Contacts
-                </>
-              )}
-            </button>
-          </form>
-
-          {error && (
-            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-red-800">{error}</p>
-            </div>
-          )}
-        </div>
+            {error && (
+              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-red-800">{error}</p>
+              </div>
+            )}
+          </div>
         )}
 
         {tab === 'search' && results.length > 0 && (
@@ -319,6 +305,7 @@ function App() {
                 >
                   <span>←</span> Back to Saved Data
                 </button>
+
                 <div className="bg-white rounded-2xl shadow-lg p-8">
                   <div className="flex items-center gap-2 mb-6 pb-6 border-b border-slate-200">
                     <div className="h-2 w-2 rounded-full bg-blue-600"></div>
@@ -335,10 +322,7 @@ function App() {
                     items={selectedResult.result.emails}
                     emptyMessage="No email addresses found"
                     renderItem={(email) => (
-                      <a
-                        href={`mailto:${email}`}
-                        className="text-blue-600 hover:underline"
-                      >
+                      <a href={`mailto:${email}`} className="text-blue-600 hover:underline">
                         {email}
                       </a>
                     )}
@@ -383,44 +367,42 @@ function App() {
                         className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                       />
                     </div>
+
                     <div className="space-y-3">
-                      {history.filter((item) => item.domain.toLowerCase().includes(searchFilter.toLowerCase())).map((item) => (
-                        <div
-                          key={item.id}
-                          className="p-4 bg-slate-50 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200 group"
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div
-                              onClick={() =>
-                                setSelectedResult({
-                                  domain: item.domain,
-                                  result: {
-                                    source: item.source,
-                                    emails: item.emails,
-                                    socials: item.socials,
-                                  },
-                                })
-                              }
-                              className="flex-1 min-w-0 cursor-pointer"
-                            >
-                              <p className="font-medium text-slate-900 break-all hover:text-blue-600">{item.domain}</p>
-                              <p className="text-sm text-slate-600 mt-1">
-                                {item.emails.length} email{item.emails.length !== 1 ? 's' : ''} • {Object.values(item.socials).flat().length} social link{Object.values(item.socials).flat().length !== 1 ? 's' : ''}
-                              </p>
-                              <p className="text-xs text-slate-500 mt-2">
-                                {new Date(item.created_at).toLocaleDateString()} at {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => deleteResult(item.id)}
-                              className="text-slate-400 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg flex-shrink-0"
-                              title="Delete this result"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
+                      {history
+                        .filter((item) => item.domain.toLowerCase().includes(searchFilter.toLowerCase()))
+                        .map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-4 bg-slate-50 rounded-lg hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-200 cursor-pointer"
+                            onClick={() =>
+                              setSelectedResult({
+                                domain: item.domain,
+                                result: {
+                                  source: item.source,
+                                  emails: item.emails,
+                                  socials: item.socials,
+                                },
+                              })
+                            }
+                          >
+                            <p className="font-medium text-slate-900 break-all hover:text-blue-600">
+                              {item.domain}
+                            </p>
+                            <p className="text-sm text-slate-600 mt-1">
+                              {item.emails.length} email{item.emails.length !== 1 ? 's' : ''} •{' '}
+                              {Object.values(item.socials).flat().length} social link
+                              {Object.values(item.socials).flat().length !== 1 ? 's' : ''}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-2">
+                              {new Date(item.created_at).toLocaleDateString()} at{' '}
+                              {new Date(item.created_at).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </p>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   </>
                 ) : (
