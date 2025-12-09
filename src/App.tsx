@@ -73,6 +73,7 @@ function App() {
         .eq('id', id);
 
       if (error) throw error;
+      setHistory(prev => prev.filter(item => item.id !== id));
       await loadHistory();
     } catch (err) {
       console.error('Failed to delete result:', err);
