@@ -6,6 +6,8 @@
 */
 
 CREATE POLICY "Allow public delete"
-  ON scrape_results FOR DELETE
-  TO public
-  USING (true);
+ON scrape_results
+FOR DELETE
+TO public
+USING (true)
+WITH CHECK (true);
